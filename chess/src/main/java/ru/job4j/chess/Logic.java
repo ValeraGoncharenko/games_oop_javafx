@@ -1,5 +1,7 @@
 package ru.job4j.chess;
 
+import ru.job4j.chess.ex.FigureNotFoundException;
+import ru.job4j.chess.ex.FigurePathNotBusy;
 import ru.job4j.chess.firuges.Cell;
 import ru.job4j.chess.firuges.Figure;
 
@@ -21,18 +23,26 @@ public class Logic {
         this.figures[this.index++] = figure;
     }
 
-    public boolean move(Cell source, Cell dest) {
+    public boolean move(Cell source, Cell dest) throws IllegalStateException, FigurePathNotBusy, FigureNotFoundException{
         boolean rst = false;
         int index = this.findBy(source);
-        if (index != -1) {
-            Cell[] steps = this.figures[index].way(source, dest);
-            if (steps.length > 0 && steps[steps.length - 1].equals(dest)) {
-                rst = true;
-                this.figures[index] = this.figures[index].copy(dest);
+        if (index == -1) {
+            throw new FigureNotFoundException("Figure not found");
+        }
+        Cell[] steps = this.figures[index].way(source, dest);
+        for (Cell chess : steps) {
+            if (this.findBy(chess) != -1) {
+                throw new FigurePathNotBusy("This way is occupied");
             }
+            if (steps.length > 0 && steps[steps.length - 1].equals(dest)) {
+                this.figures[index] = this.figures[index].copy(dest);
+                rst = true;
+            }
+
         }
         return rst;
     }
+
 
     public void clean() {
         for (int position = 0; position != this.figures.length; position++) {
